@@ -1,77 +1,91 @@
 import React from 'react';
+import {useState, useEffect} from 'react'
 
-export class ClockToggle extends React.Component {
-  render () {
+export function ClockToggle({ toggleClock }) {
     return (
       <button 
         type="button"
         className="clock-toggle" 
-        onClick={this.props.toggleClock}
+        onClick={toggleClock}
       >
         Toggle Clock
       </button>
     )
-  }
 } 
 
-class Clock extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      time: new Date(),
-    };
-  }
+export function Clock() {
+  const [time, setTime] = useState(new Date())
+  const [hours, setHours] = useState(time.getHours())
+  const [minutes, setMinutes] = useState(time.getMinutes())
+  const [seconds, setSeconds] = useState(time.getSeconds())
+  const [timezone, setTimezone] = useState(
+    time.toTimeString() // Form: "14:39:07 GMT-0600 (PDT)"
+    .replace(/[^A-Z]/g, "") // Strip out all but capitals
+    .slice(3) // Eliminate initial GMT)
+  )
   
-  componentDidMount() {
-    this.interval = setInterval(this.tick, 1000);
-  }
+  // componentDidMount() {
+  //   this.interval = setInterval(this.tick, 1000);
+  // }
+
+  useEffect(()=>{
+    let tickInterval = setInterval(tick, 1000)
+    return () => clearInterval(tickInterval)
+  },[])
+
+
   
-  componentWillUnmount() {
-    console.log("Clearing Clock interval!")
-    clearInterval(this.interval);
-  }
+  // componentWillUnmount() {
+  //   console.log("Clearing Clock interval!")
+  //   clearInterval(this.interval);
+  // }
   
-  tick = () => {
-    this.setState({ time: new Date() });
+  const tick = () => {
+    setTime(new Date());
+    console.log("tick!")
   }
 
-  render() {
-    let hours = this.state.time.getHours();
-    let minutes = this.state.time.getMinutes();
-    let seconds = this.state.time.getSeconds();
-    hours = (hours < 10) ? `0${hours}` : hours;
-    minutes = (minutes < 10) ? `0${minutes}` : minutes;
-    seconds = (seconds < 10) ? `0${seconds}` : seconds;
+  useEffect(() => {
+    let newHours = time.getHours()
+    let newMinutes = time.getMinutes()
+    let newseconds = time.getSeconds()
 
-    const timezone = this.state.time
+    setHours((newHours < 10) ? `0${newHours}` : newHours)
+    setMinutes((newMinutes < 10) ? `0${newMinutes}` : newMinutes)
+    setSeconds((newseconds < 10) ? `0${newseconds}` : newseconds)
+
+    setTimezone(time
       .toTimeString() // Form: "14:39:07 GMT-0600 (PDT)"
       .replace(/[^A-Z]/g, "") // Strip out all but capitals
-      .slice(3); // Eliminate initial GMT
+      .slice(3) // Eliminate initial GMT
+    )
 
-    return (
-      <section className="clock-section">
-        <h1>Clock</h1>
-        <div className='clock'>
-          <p>
-            <span>
-              Time:
-            </span>
-            <span>
-              {hours}:{minutes}:{seconds} {timezone}
-            </span>
-          </p>
-          <p>
-            <span>
-              Date: 
-            </span>
-            <span>
-              {this.state.time.toDateString()}
-            </span>
-          </p>
-        </div>
-      </section>
-    );
-  }
+  },[time])
+
+  return (
+    <section className="clock-section">
+      <h1>Clock</h1>
+      <div className='clock'>
+        <p>
+          <span>
+            Time:
+          </span>
+          <span>
+            {hours}:{minutes}:{seconds} {timezone}
+          </span>
+        </p>
+        <p>
+          <span>
+            Date: 
+          </span>
+          <span>
+            {time.toDateString()}
+          </span>
+        </p>
+      </div>
+    </section>
+  );
+
 }
 
-export default Clock;
+export default {Clock, ClockToggle}
